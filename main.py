@@ -33,7 +33,6 @@ def units():
     return request('get', '/play/zombidef/units')
 
 
-
 def world():
     return request('get', '/play/zombidef/world')
 
@@ -127,7 +126,8 @@ def get_build(data):
         availab_spots.add((tower['x'] + 1, tower['y']))
 
     for tower in base:
-        if tower in availab_spots:
+        elem = (tower['x'], tower['y'])
+        if elem in availab_spots:
             availab_spots.remove((tower['x'], tower['y']))
 
     build_com = []
@@ -153,14 +153,8 @@ def get_move_base(data):
             }
 
 
-
 def get_command():
     data = units()
-
-    myFile = open(f'{time.time()}.txt', 'w')
-
-    myFile.write(json.dumps(data))
-    myFile.close()
 
     build = get_build(data)
     attack = get_attack(data)
@@ -173,11 +167,8 @@ def get_command():
             'moveBase': move_base
         }
     )
+    pprint(r)
 
-import pygame
-pygame.init()
-
-screen = pygame.display.set_mode([1000, 1000])
 
 def visual():
     while True:
@@ -230,9 +221,8 @@ def visual():
 
 
 
-visual()
 
 while True:
     get_command()
-    time.sleep(1)
+    time.sleep(1.5)
 
