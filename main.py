@@ -49,16 +49,22 @@ def pprint(d):
 
 def get_zombies(data):
     zombies = data.get('zombies')
+    if zombies is None:
+        return []
     return zombies
 
 
 def get_base(data):
     base = data.get('base')
+    if base is None:
+        return []
     return base
 
 
 def get_enemy_blocks(data):
     enemy_blocks = data.get('enemyBlocks')
+    if enemy_blocks is None:
+        return []
     return enemy_blocks
 
 
@@ -66,8 +72,10 @@ def get_attack(data):
     res = []
     base = get_base(data)
     zombies = get_zombies(data)
+
+    zombies.sort(key=lambda zombie: zombie.get('health'))
     enemy_blocks = get_enemy_blocks(data)
-    #zombies.sort(key=lambda zombie: zombie.get('health'))
+
 
     for tower in base:
         for zombie in zombies:
@@ -78,7 +86,7 @@ def get_attack(data):
 
             zx = zombie.get('x')
             zy = zombie.get('y')
-            if r ** 2 <= (tx - zx) ** 2 + (ty - zy) ** 2:
+            if r ** 2 >= (tx - zx) ** 2 + (ty - zy) ** 2:
                 res.append({
                     'blockId': id,
                     'target': {
@@ -95,7 +103,7 @@ def get_attack(data):
 
             bx = enemy_block.get('x')
             by = enemy_block.get('y')
-            if r ** 2 <= (tx - bx) ** 2 + (ty - by) ** 2:
+            if r ** 2 >= (tx - bx) ** 2 + (ty - by) ** 2:
                 res.append({
                     'blockId': id,
                     'target': {
@@ -109,29 +117,29 @@ def get_attack(data):
 
 
 def get_build(data):
-    units_ = data
-
     availab_spots = set()
+    base = get_base(data)
 
-    X = units_['base'][0]['x']
-    Y = units_['base'][0]['y']
+    for tower in base:
+        availab_spots.add((tower['x'], tower['y'] + 1))
+        availab_spots.add((tower['x'], tower['y'] - 1))
+        availab_spots.add((tower['x'] - 1, tower['y']))
+        availab_spots.add((tower['x'] + 1, tower['y']))
 
-    for unit in units_['base']:
-        availab_spots.add((unit['x'], unit['y'] + 1))
-        availab_spots.add((unit['x'], unit['y'] - 1))
-        availab_spots.add((unit['x'] - 1, unit['y']))
-        availab_spots.add((unit['x'] + 1, unit['y']))
-
-    for unit in units_['base']:
+    for tower in base:
         try:
-            availab_spots.remove((unit['x'], unit['y']))
+            availab_spots.remove((tower['x'], tower['y']))
         except:
             pass
 
     build_com = []
 
-    for i in range(units_['player']['gold'] * 2):
+    for i in range(data['player']['gold'] * 2):
         elem = random.choice(tuple(availab_spots))
+        try:
+            availab_spots.remove(elem)
+        except:
+            pass
         build_com.append({'x': elem[0], 'y': elem[1]})
 
     return build_com
@@ -196,6 +204,7 @@ def visual():
                 running = False
 
 
+
         x_d = 500
         y_d = 500
 
@@ -226,3 +235,8 @@ def visual():
 
 
 visual()
+
+while True:
+    get_command()
+    time.sleep(1)
+
