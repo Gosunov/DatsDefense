@@ -127,19 +127,17 @@ def get_build(data):
         availab_spots.add((tower['x'] + 1, tower['y']))
 
     for tower in base:
-        try:
+        if tower in availab_spots:
             availab_spots.remove((tower['x'], tower['y']))
-        except:
-            pass
 
     build_com = []
 
     for i in range(data['player']['gold'] * 2):
+        if not availab_spots:
+            break
         elem = random.choice(tuple(availab_spots))
-        try:
+        if elem in availab_spots:
             availab_spots.remove(elem)
-        except:
-            pass
         build_com.append({'x': elem[0], 'y': elem[1]})
 
     return build_com
@@ -176,7 +174,9 @@ def get_command():
         }
     )
 
-    #pprint(r)
+
+import pygame
+pygame.init()
 
 
 #while True:
