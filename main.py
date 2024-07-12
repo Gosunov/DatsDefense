@@ -97,7 +97,10 @@ def get_build(data):
         availab_spots.add((unit['x'] + 1, unit['y']))
 
     for unit in units_['base']:
-        availab_spots.remove((unit['x'], unit['y']))
+        try:
+            availab_spots.remove((unit['x'], unit['y']))
+        except:
+            pass
 
     build_com = []
 
