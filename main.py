@@ -137,6 +137,10 @@ def get_build(data):
 
     for i in range(units_['player']['gold'] * 2):
         elem = random.choice(tuple(availab_spots))
+        try:
+            availab_spots.remove(elem)
+        except:
+            pass
         build_com.append({'x': elem[0], 'y': elem[1]})
 
     return build_com
@@ -165,7 +169,6 @@ def get_command():
         }
     )
     pprint(r)
-
 
 
 while True:
