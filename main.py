@@ -28,9 +28,10 @@ def participate():
 def command(body):
     return request('post', '/play/zombidef/command', body)
 
-
 def units():
+    #return json.loads(open('1720805915.2333837.txt', 'r').read())
     return request('get', '/play/zombidef/units')
+
 
 
 def world():
@@ -66,7 +67,7 @@ def get_attack(data):
     base = get_base(data)
     zombies = get_zombies(data)
     enemy_blocks = get_enemy_blocks(data)
-    zombies.sort(key=lambda zombie: zombie.get('health'))
+    #zombies.sort(key=lambda zombie: zombie.get('health'))
 
     for tower in base:
         for zombie in zombies:
@@ -146,11 +147,19 @@ def get_move_base(data):
             }
 
 
+
 def get_command():
     data = units()
+
+    myFile = open(f'{time.time()}.txt', 'w')
+
+    myFile.write(json.dumps(data))
+    myFile.close()
+
     build = get_build(data)
     attack = get_attack(data)
     move_base = get_move_base(data)
+
     r = command(
         {
             'attack': attack,
@@ -158,10 +167,62 @@ def get_command():
             'moveBase': move_base
         }
     )
-    pprint(r)
+
+    #pprint(r)
+
+import pygame
+pygame.init()
+
+screen = pygame.display.set_mode([1000, 1000])
+
+def visual():
+    while True:
+        data = units()
+
+        myFile = open(f'{time.time()}.txt', 'w')
+
+        myFile.write(str(data))
+        myFile.close()
+
+        # Fill the background with white
+        screen.fill((255, 255, 255))
+
+        base = get_base(data)
+        zombies = get_zombies(data)
+        enemy_blocks = get_enemy_blocks(data)
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
 
 
-participate()
-while True:
-    get_command()
-    time.sleep(1)
+        x_d = 500
+        y_d = 500
+
+
+        print(type(base))
+        if (type(base)):
+            for tower in base:
+                # Draw a solid blue circle in the center
+                pygame.draw.circle(screen, (0, 0, 255),(x_d + tower.get('x'), y_d + tower.get('y')), 1)
+
+        if (type(zombies) != None):
+            for zombie in zombies:
+                # Draw a solid blue circle in the center
+                pygame.draw.circle(screen, (0, 255, 0), (x_d + zombie.get('x'), y_d + zombie.get('y')), 1)
+
+
+        if (type(enemy_blocks) != None):
+            for enemy_block in enemy_blocks:
+                # Draw a solid blue circle in the center
+                pygame.draw.circle(screen, (255, 0, 0), (x_d + enemy_block.get('x'),y_d + enemy_block.get('y')), 1)
+
+        # Flip the display
+        pygame.display.flip()
+
+        time.sleep(1)
+
+
+
+
+visual()

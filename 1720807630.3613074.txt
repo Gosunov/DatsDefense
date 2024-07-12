@@ -1,0 +1,1 @@
+{'realmName': 'test-day1-7', 'player': {'gold': 10, 'points': 0, 'name': 'хочу макбук', 'zombieKills': 0, 'enemyBlockKills': 0, 'gameEndedAt': '2024-07-12T18:06:52.098891579Z'}, 'base': None, 'zombies': None, 'enemyBlocks': None, 'turnEndsInMs': 1105, 'turn': 65}
