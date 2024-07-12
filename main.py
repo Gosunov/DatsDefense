@@ -29,7 +29,6 @@ def command(body):
     return request('post', '/play/zombidef/command', body)
 
 def units():
-    #return json.loads(open('1720805915.2333837.txt', 'r').read())
     return request('get', '/play/zombidef/units')
 
 
@@ -219,10 +218,6 @@ def visual():
         time.sleep(1)
 
 
-
-
-
 while True:
     get_command()
     time.sleep(1.5)
-
