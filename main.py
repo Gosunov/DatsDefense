@@ -114,28 +114,24 @@ def get_attack(data):
 
 
 def get_build(data):
-    units_ = data
-
     availab_spots = set()
+    base = get_base(data)
 
-    X = units_['base'][0]['x']
-    Y = units_['base'][0]['y']
+    for tower in base:
+        availab_spots.add((tower['x'], tower['y'] + 1))
+        availab_spots.add((tower['x'], tower['y'] - 1))
+        availab_spots.add((tower['x'] - 1, tower['y']))
+        availab_spots.add((tower['x'] + 1, tower['y']))
 
-    for unit in units_['base']:
-        availab_spots.add((unit['x'], unit['y'] + 1))
-        availab_spots.add((unit['x'], unit['y'] - 1))
-        availab_spots.add((unit['x'] - 1, unit['y']))
-        availab_spots.add((unit['x'] + 1, unit['y']))
-
-    for unit in units_['base']:
+    for tower in base:
         try:
-            availab_spots.remove((unit['x'], unit['y']))
+            availab_spots.remove((tower['x'], tower['y']))
         except:
             pass
 
     build_com = []
 
-    for i in range(units_['player']['gold'] * 2):
+    for i in range(data['player']['gold'] * 2):
         elem = random.choice(tuple(availab_spots))
         try:
             availab_spots.remove(elem)
