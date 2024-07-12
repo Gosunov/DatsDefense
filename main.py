@@ -56,10 +56,17 @@ def get_base(data):
     return base
 
 
+def get_enemy_blocks(data):
+    enemy_blocks = data.get('enemyBlocks')
+    return enemy_blocks
+
+
 def get_attack(data):
     res = []
     base = get_base(data)
     zombies = get_zombies(data)
+    enemy_blocks = get_enemy_blocks(data)
+
     for tower in base:
         for zombie in zombies:
             tx = tower.get('x')
@@ -75,6 +82,23 @@ def get_attack(data):
                     'target': {
                         'x': zx,
                         'y': zy,
+                    }
+                })
+                break
+        for enemy_block in enemy_blocks:
+            tx = tower.get('x')
+            ty = tower.get('y')
+            r = tower.get('range')
+            id = tower.get('id')
+
+            bx = enemy_block.get('x')
+            by = enemy_block.get('y')
+            if r ** 2 <= (tx - bx) ** 2 + (ty - by) ** 2:
+                res.append({
+                    'blockId': id,
+                    'target': {
+                        'x': bx,
+                        'y': by,
                     }
                 })
                 break
@@ -137,5 +161,3 @@ participate()
 while True:
     get_command()
     time.sleep(1)
-
-# gosunov commit 
