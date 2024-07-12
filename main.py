@@ -66,6 +66,7 @@ def get_attack(data):
     base = get_base(data)
     zombies = get_zombies(data)
     enemy_blocks = get_enemy_blocks(data)
+    zombies.sort(key=lambda zombie: zombie.get('health'))
 
     for tower in base:
         for zombie in zombies:
