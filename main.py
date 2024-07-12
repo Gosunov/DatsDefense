@@ -121,11 +121,14 @@ def get_build(data):
         availab_spots.add((unit['x'] + 1, unit['y']))
 
     for unit in units_['base']:
-        availab_spots.remove((unit['x'], unit['y']))
+        try:
+            availab_spots.remove((unit['x'], unit['y']))
+        except:
+            pass
 
     build_com = []
 
-    for i in range(units_['player']['gold']):
+    for i in range(units_['player']['gold'] * 2):
         elem = random.choice(tuple(availab_spots))
         build_com.append({'x': elem[0], 'y': elem[1]})
 
