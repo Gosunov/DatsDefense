@@ -104,7 +104,7 @@ def get_build(data):
 
     build_com = []
 
-    for i in range(units_['player']['gold']):
+    for i in range(units_['player']['gold'] * 2):
         elem = random.choice(tuple(availab_spots))
         build_com.append({'x': elem[0], 'y': elem[1]})
 
