@@ -137,3 +137,5 @@ participate()
 while True:
     get_command()
     time.sleep(1)
+
+# gosunov commit 
