@@ -48,16 +48,22 @@ def pprint(d):
 
 def get_zombies(data):
     zombies = data.get('zombies')
+    if zombies is None:
+        return []
     return zombies
 
 
 def get_base(data):
     base = data.get('base')
+    if base is None:
+        return []
     return base
 
 
 def get_enemy_blocks(data):
     enemy_blocks = data.get('enemyBlocks')
+    if enemy_blocks is None:
+        return []
     return enemy_blocks
 
 
@@ -65,8 +71,8 @@ def get_attack(data):
     res = []
     base = get_base(data)
     zombies = get_zombies(data)
-    enemy_blocks = get_enemy_blocks(data)
     zombies.sort(key=lambda zombie: zombie.get('health'))
+    enemy_blocks = get_enemy_blocks(data)
 
     for tower in base:
         for zombie in zombies:
@@ -77,7 +83,7 @@ def get_attack(data):
 
             zx = zombie.get('x')
             zy = zombie.get('y')
-            if r ** 2 <= (tx - zx) ** 2 + (ty - zy) ** 2:
+            if r ** 2 >= (tx - zx) ** 2 + (ty - zy) ** 2:
                 res.append({
                     'blockId': id,
                     'target': {
@@ -94,7 +100,7 @@ def get_attack(data):
 
             bx = enemy_block.get('x')
             by = enemy_block.get('y')
-            if r ** 2 <= (tx - bx) ** 2 + (ty - by) ** 2:
+            if r ** 2 >= (tx - bx) ** 2 + (ty - by) ** 2:
                 res.append({
                     'blockId': id,
                     'target': {
@@ -161,7 +167,7 @@ def get_command():
     pprint(r)
 
 
-participate()
+
 while True:
     get_command()
     time.sleep(1)
