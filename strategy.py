@@ -8,31 +8,29 @@ def get_attacks(data: UnitResponse, world: WorldResponse) -> list[AttackCommand]
     attacks = []
     base = data.base
 
-    targets = {} # targets[(x,y)] = (target, priority)
+    targets = [] # targets[<Coords>] = (target priority)
 
     zombies = data.zombies
     for zombie in zombies:
-        targets[(zombie.x, zombie.y)] = (zombie, 10)
+        targets[(zombie.x, zombie.y)] = zombie
 
     enemy_towers = data.enemy_towers
-    for e_tower in enemy_towers:
-        targets[(e_tower.x, e_tower.y)] = (e_tower, 5)
+    for enemy_tower in enemy_towers:
+        targets[] = enemy_tower
 
     damage_applied = defaultdict(int) # damage_applied[<coords>] = <damage> 
-
-    square_radius = 5
     for tower in base:
-
+        square_radius = tower.r
         attack_coord = None
         happiness = -100
 
-        for dx in range(-square_radius, square_radius+1):
-            for dy in range(-square_radius, square_radius + 1):
-
+        for dx in range(-tower.r, tower.r + 1):
+            for dy in range(-tower.r, tower.r + 1):
                 x2 = tower.x + dx
                 y2 = tower.y + dy
 
-                if (x2, y2) not in targets: continue
+                if (x2, y2) not in targets:
+                    continue
 
                 target_coords = Coordinates(x2, y2)
                 if damage_applied[target_coords] >= targets[(x2, y2)][0].health:
@@ -93,18 +91,8 @@ def get_move_base(data: UnitResponse, world: WorldResponse) -> Coordinates:
 
 
 def get_command(data: UnitResponse, world: WorldResponse):
-    t1 = int(time() * 10 ** 3)
-
     attacks   = get_attacks(data, world)
-    t2 = int(time() * 10 ** 3)
-    print(f'{(t2 - t1)}', end=' ')
-
     builds    = get_builds(data, world)
-    t3 = int(time() * 10 ** 3)
-    print(f'{(t3 - t2)}', end=' ')
-
     move_base = get_move_base(data, world)
-    t4 = int(time() * 10 ** 3)
-    print(f'{(t4 - t3)} (att, bui, move)',)
 
     return Command(attacks, builds, move_base)
