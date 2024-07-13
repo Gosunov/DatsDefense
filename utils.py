@@ -18,7 +18,6 @@ def turncache(f):
         turn = args[0]
         if turn == wrapper.last_turn:
             return wrapper.last_value
-        print('Call was made')
         value = f(*args, **kwargs)
         wrapper.last_turn = turn
         wrapper.last_value = value

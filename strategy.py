@@ -4,31 +4,57 @@ from collections import defaultdict
 from entities import *
 from time import time
 
+from utils import turncache
 
-def get_zombies(data: UnitResponse, world: WorldResponse) -> dict[Coordinates, list[Zombie]]:
+@turncache
+def get_zombies(turn: int, data: UnitResponse, world: WorldResponse) -> dict[Coordinates, list[Zombie]]:
     coords_zombies = defaultdict(list)
     for zombie in data.zombies:
         coords = Coordinates(zombie.x, zombie.y)
         coords_zombies[coords].append(zombie)
     return dict(coords_zombies)
 
-
-def get_enemy_towers(data: UnitResponse, world: WorldResponse) -> dict[Coordinates, EnemyTower]:
+@turncache
+def get_enemy_towers(turn: int, data: UnitResponse, world: WorldResponse) -> dict[Coordinates, EnemyTower]:
     coords_enemy_towers = dict()
     for enemy_tower in data.enemy_towers:
         coords = Coordinates(enemy_tower.x, enemy_tower.y)
         coords_enemy_towers[coords] = enemy_tower
     return coords_enemy_towers
 
+@turncache
+def get_towers(turn: int, data: UnitResponse, world: WorldResponse) -> dict[Coordinates, Tower]:
+    coords_towers = dict()
+    for tower in data.base:
+        coords = Coordinates(tower.x, tower.y)
+        coords_towers[coords] = tower
+    return coords_towers
+
+@turncache
+def get_zpots(turn: int, data: UnitResponse, world: WorldResponse) -> dict[Coordinates, Zpot]:
+    coords_zpots = dict()
+    for zpot in world.zpots:
+        coords = Coordinates(zpot.x, zpot.y)
+        coords_zpots[coords] = zpot
+    return coords_zpots
+
+@turncache
+def get_damage_by_zombies(turn: int, data: UnitResponse, world: WorldResponse) -> dict[Coordinates, int]:
+    towers = get_towers(turn, data, world)
+    for zombie in data.zombies:
+        pass
+    return {}
+
 
 def get_attacks(data: UnitResponse, world: WorldResponse) -> list[AttackCommand]:
+    turn = data.turn
     attacks = []
     base = data.base
 
-    zombies      = get_zombies(data, world)
-    enemy_towers = get_enemy_towers(data, world)
+    zombies      = get_zombies(turn, data, world)
+    enemy_towers = get_enemy_towers(turn, data, world)
 
-    damage_applied = defaultdict(int)
+    damage_applied: defaultdict[Coordinates, int] = defaultdict(int)
     for tower in base:
         x1 = tower.x
         y1 = tower.y
@@ -69,27 +95,59 @@ def get_attacks(data: UnitResponse, world: WorldResponse) -> list[AttackCommand]
     return attacks
 
 
+def neighbours4(coords: Coordinates) -> tuple[Coordinates, Coordinates, Coordinates, Coordinates]:
+    x = coords.x
+    y = coords.y
+
+    n = Coordinates(x + 1, y)
+    e = Coordinates(x, y + 1)
+    s = Coordinates(x - 1, y)
+    w = Coordinates(x, y - 1)
+    return (n, e, s, w)
+
+
+def valid_build(coords: Coordinates, data: UnitResponse, world: WorldResponse) -> bool:
+    turn = data.turn
+
+    enemy_towers = get_enemy_towers(turn, data, world)
+    zombies      = get_zombies(turn, data, world)
+    towers       = get_towers(turn, data, world)
+    zpots        = get_zpots(turn, data, world)
+
+    if coords in enemy_towers:
+        return False
+    if coords in zpots:
+        return False
+    if coords in zombies:
+        return False
+    if coords in towers:
+        return False
+
+    for neighbour in neighbours4(coords):
+        if neighbour in enemy_towers:
+            return False
+        if neighbour in zpots:
+            return False
+
+    return True
+
+
 def get_builds(data: UnitResponse, world: WorldResponse) -> list[BuildCommand]:
-    spots = set()
+    spots = list()
     base = data.base
     gold = data.player.gold
 
     for tower in base:
-        spots.add(Coordinates(tower.x, tower.y + 1))
-        spots.add(Coordinates(tower.x, tower.y - 1))
-        spots.add(Coordinates(tower.x + 1, tower.y))
-        spots.add(Coordinates(tower.x - 1, tower.y))
+        for neighbour in neighbours4(Coordinates(tower.x, tower.y)):
+            spots.append(neighbour)
 
-    for tower in base:
-        coords = Coordinates(tower.x, tower.y)
-        if coords in spots:
-            spots.remove(coords)
-
+    spots = list(set(spots))
+    spots = filter(lambda spot: valid_build(spot, data, world), spots)
     spots = list(spots)
     random.shuffle(spots)
-    spots = spots[:gold * 2]
+    spots = spots[:gold]
+    
     builds = []
-
     for spot in spots:
         builds.append(BuildCommand.from_coordinates(spot))
 
