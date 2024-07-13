@@ -1,9 +1,11 @@
 import json
 from time import sleep, time
 import random
+from collections import defaultdict
 
 from entities import *
 from api import mainServerApi, testServerApi, MockApi
+
 
 def get_attacks(data: UnitResponse, world: WorldResponse) -> list[AttackCommand]:
     attacks = []
@@ -12,19 +14,23 @@ def get_attacks(data: UnitResponse, world: WorldResponse) -> list[AttackCommand]
     zombies.sort(key=lambda zombie: zombie.health)
     enemy_towers = data.enemy_towers
 
+    damage_applied = defaultdict(int) # damage_applied[<coords>] = <damage> 
     for tower in base:
         targets = zombies + enemy_towers
         for target in targets:
+            x2 = target.x
+            y2 = target.y
+            target_coords = Coordinates(x2, y2)
+            if damage_applied[target_coords] >= target.health:
+                continue
+
             x1 = tower.x
             y1 = tower.y
             r  = tower.r
-
-            x2 = target.x
-            y2 = target.y
             if r ** 2 >= (x1 - x2) ** 2 + (y1 - y2) ** 2:
-                target = Coordinates(x2, y2)
-                attack = AttackCommand(tower.id, target)
+                attack = AttackCommand(tower.id, target_coords)
                 attacks.append(attack)
+                damage_applied[target_coords] += tower.attack
                 break
 
     return attacks
@@ -88,6 +94,7 @@ API = MockApi()
 # API = mainServerApi
 
 starts_in_sec = API.participate().starts_in_sec
+print('Round is starting in %ds, waiting...' % starts_in_sec)
 sleep(starts_in_sec)
 
 world = API.world()
