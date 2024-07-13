@@ -4,53 +4,67 @@ from collections import defaultdict
 from entities import *
 from time import time
 
+
+def get_zombies(data: UnitResponse, world: WorldResponse) -> dict[Coordinates, list[Zombie]]:
+    coords_zombies = defaultdict(list)
+    for zombie in data.zombies:
+        coords = Coordinates(zombie.x, zombie.y)
+        coords_zombies[coords].append(zombie)
+    return dict(coords_zombies)
+
+
+def get_enemy_towers(data: UnitResponse, world: WorldResponse) -> dict[Coordinates, EnemyTower]:
+    coords_enemy_towers = dict()
+    for enemy_tower in data.enemy_towers:
+        coords = Coordinates(enemy_tower.x, enemy_tower.y)
+        coords_enemy_towers[coords] = enemy_tower
+    return coords_enemy_towers
+
+
 def get_attacks(data: UnitResponse, world: WorldResponse) -> list[AttackCommand]:
     attacks = []
     base = data.base
 
-    targets = [] # targets[<Coords>] = (target priority)
+    zombies      = get_zombies(data, world)
+    enemy_towers = get_enemy_towers(data, world)
 
-    zombies = data.zombies
-    for zombie in zombies:
-        targets[(zombie.x, zombie.y)] = zombie
-
-    enemy_towers = data.enemy_towers
-    for enemy_tower in enemy_towers:
-        targets[] = enemy_tower
-
-    damage_applied = defaultdict(int) # damage_applied[<coords>] = <damage> 
+    damage_applied = defaultdict(int)
     for tower in base:
-        square_radius = tower.r
-        attack_coord = None
-        happiness = -100
+        x1 = tower.x
+        y1 = tower.y
+        r  = tower.r
 
-        for dx in range(-tower.r, tower.r + 1):
-            for dy in range(-tower.r, tower.r + 1):
-                x2 = tower.x + dx
-                y2 = tower.y + dy
-
-                if (x2, y2) not in targets:
+        reachable_zombies = []
+        reachable_enemy_towers = []
+        for dx in range(-r, r + 1):
+            for dy in range(-r, r + 1):
+                x2 = x1 + dx
+                y2 = y1 + dy
+                if r ** 2 < (x1 - x2) ** 2 + (y1 - y2) ** 2:
                     continue
 
-                target_coords = Coordinates(x2, y2)
-                if damage_applied[target_coords] >= targets[(x2, y2)][0].health:
-                    continue
+                coords = Coordinates(x2, y2) 
+                if coords in zombies:
+                    reachable_zombies.extend(zombies[coords])
+                if coords in enemy_towers:
+                    enemy_tower = enemy_towers[coords]
+                    reachable_enemy_towers.append(enemy_tower)
 
-                x1 = tower.x
-                y1 = tower.y
-                r  = tower.r
+        reachable_zombies.sort(key=lambda zombie: zombie.health)
+        reachable_enemy_towers.sort(key=lambda enemy_tower: -enemy_tower.is_head)
 
-                if r ** 2 >= (x1 - x2) ** 2 + (y1 - y2) ** 2:
-                    cur_happiness = targets[(x2, y2)][1] * 100 - targets[(x2, y2)][0].health # [5 or 10] * 100 - health
-                    if cur_happiness > happiness:
-                        happiness = cur_happiness
-                        attack_coord = target_coords
-                    break
-
-        if attack_coord is not None:
-            attack = AttackCommand(tower.id, target_coords)
-            attacks.append(attack)
-            damage_applied[target_coords] += tower.attack
+        targets = reachable_zombies + reachable_enemy_towers
+        for target in targets:
+            x2 = target.x
+            y2 = target.y
+            target_coords = Coordinates(x2, y2)
+            if damage_applied[target_coords] >= target.health:
+                continue
+            if r ** 2 >= (x1 - x2) ** 2 + (y1 - y2) ** 2:
+                attack = AttackCommand(tower.id, target_coords)
+                attacks.append(attack)
+                damage_applied[target_coords] += tower.attack
+                break
 
     return attacks
 
