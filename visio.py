@@ -89,13 +89,10 @@ def draw(event):
 
     if mouse_down == 'None': return
 
-    print(event.pos)
-
     (board_x, board_y) = reverse_scale(event.pos)
 
     (board_x, board_y) = (int(board_x), int(board_y))
 
-    print((board_x, board_y))
     global brush_radius
 
     radius = brush_radius

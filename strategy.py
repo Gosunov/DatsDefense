@@ -6,8 +6,8 @@ from time import time
 
 from utils import turncache
 
-
 import human_controls
+
 
 def neighbours4(coords: Coordinates) -> tuple[Coordinates, Coordinates, Coordinates, Coordinates]:
     x = coords.x
@@ -19,7 +19,9 @@ def neighbours4(coords: Coordinates) -> tuple[Coordinates, Coordinates, Coordina
     w = Coordinates(x - 1, y)
     return (n, e, s, w)
 
-def neighbours8(coords: Coordinates) -> tuple[Coordinates, Coordinates, Coordinates, Coordinates, Coordinates, Coordinates, Coordinates, Coordinates]:
+
+def neighbours8(coords: Coordinates) -> tuple[
+    Coordinates, Coordinates, Coordinates, Coordinates, Coordinates, Coordinates, Coordinates, Coordinates]:
     x = coords.x
     y = coords.y
 
@@ -34,7 +36,6 @@ def neighbours8(coords: Coordinates) -> tuple[Coordinates, Coordinates, Coordina
     return (nn, ne, ee, se, ss, sw, ww, nw)
 
 
-
 @turncache
 def get_zombies(turn: int, data: UnitResponse, world: WorldResponse) -> dict[Coordinates, list[Zombie]]:
     coords_zombies = defaultdict(list)
@@ -42,6 +43,7 @@ def get_zombies(turn: int, data: UnitResponse, world: WorldResponse) -> dict[Coo
         coords = Coordinates(zombie.x, zombie.y)
         coords_zombies[coords].append(zombie)
     return dict(coords_zombies)
+
 
 @turncache
 def get_enemy_towers(turn: int, data: UnitResponse, world: WorldResponse) -> dict[Coordinates, EnemyTower]:
@@ -51,6 +53,7 @@ def get_enemy_towers(turn: int, data: UnitResponse, world: WorldResponse) -> dic
         coords_enemy_towers[coords] = enemy_tower
     return coords_enemy_towers
 
+
 @turncache
 def get_towers(turn: int, data: UnitResponse, world: WorldResponse) -> dict[Coordinates, Tower]:
     coords_towers = dict()
@@ -59,6 +62,7 @@ def get_towers(turn: int, data: UnitResponse, world: WorldResponse) -> dict[Coor
         coords_towers[coords] = tower
     return coords_towers
 
+
 @turncache
 def get_head_tower(turn: int, data: UnitResponse, world: WorldResponse) -> Tower:
     for tower in data.base:
@@ -66,6 +70,7 @@ def get_head_tower(turn: int, data: UnitResponse, world: WorldResponse) -> Tower
             return tower
     print('[ERROR]: impossible state')
     return Tower(-1, -1, -1, Coordinates(-1, -1), False, '', -1, -1)
+
 
 @turncache
 def get_zpots(turn: int, data: UnitResponse, world: WorldResponse) -> dict[Coordinates, Zpot]:
@@ -90,25 +95,28 @@ def new_coords(coords: Coordinates, direction: str, speed: int):
     print('[ERROR]: unreachable code')
     return Coordinates(x, y)
 
+
 def normal_zombie_handler(zombie: Zombie, towers: dict[Coordinates, Tower]) -> dict[Coordinates, int]:
     damage = defaultdict(int)
-    coords  = Coordinates(zombie.x, zombie.y)
+    coords = Coordinates(zombie.x, zombie.y)
     ncoords = new_coords(coords, zombie.direction, zombie.speed)
     if ncoords in towers:
         damage[ncoords] += zombie.attack
     return dict(damage)
+
 
 def fast_zombie_handler(zombie: Zombie, towers: dict[Coordinates, Tower]) -> dict[Coordinates, int]:
     damage = defaultdict(int)
-    coords  = Coordinates(zombie.x, zombie.y)
+    coords = Coordinates(zombie.x, zombie.y)
     ncoords = new_coords(coords, zombie.direction, zombie.speed)
     if ncoords in towers:
         damage[ncoords] += zombie.attack
     return dict(damage)
 
+
 def bomber_handler(zombie: Zombie, towers: dict[Coordinates, Tower]) -> dict[Coordinates, int]:
     damage = defaultdict(int)
-    coords  = Coordinates(zombie.x, zombie.y)
+    coords = Coordinates(zombie.x, zombie.y)
     ncoords = new_coords(coords, zombie.direction, zombie.speed)
     if ncoords in towers:
         damage[ncoords] += zombie.attack
@@ -116,9 +124,10 @@ def bomber_handler(zombie: Zombie, towers: dict[Coordinates, Tower]) -> dict[Coo
             damage[neighbour] += zombie.attack
     return dict(damage)
 
+
 def liner_handler(zombie: Zombie, towers: dict[Coordinates, Tower]) -> dict[Coordinates, int]:
     damage = defaultdict(int)
-    coords  = Coordinates(zombie.x, zombie.y)
+    coords = Coordinates(zombie.x, zombie.y)
     ncoords = new_coords(coords, zombie.direction, zombie.speed)
 
     while ncoords in towers:
@@ -126,17 +135,19 @@ def liner_handler(zombie: Zombie, towers: dict[Coordinates, Tower]) -> dict[Coor
         ncoords = new_coords(ncoords, zombie.direction, zombie.speed)
     return dict(damage)
 
+
 def juggernaut_handler(zombie: Zombie, towers: dict[Coordinates, Tower]) -> dict[Coordinates, int]:
     damage = defaultdict(int)
-    coords  = Coordinates(zombie.x, zombie.y)
+    coords = Coordinates(zombie.x, zombie.y)
     ncoords = new_coords(coords, zombie.direction, zombie.speed)
     if ncoords in towers:
         damage[ncoords] += 1000
     return dict(damage)
 
+
 def chaos_knight_handler(zombie: Zombie, towers: dict[Coordinates, Tower]) -> dict[Coordinates, int]:
     damage = defaultdict(int)
-    coords  = Coordinates(zombie.x, zombie.y)
+    coords = Coordinates(zombie.x, zombie.y)
     ncoords = new_coords(coords, zombie.direction, 2)
 
     coords1: Coordinates
@@ -151,6 +162,7 @@ def chaos_knight_handler(zombie: Zombie, towers: dict[Coordinates, Tower]) -> di
     damage[coords2] += zombie.attack // 2
 
     return dict(damage)
+
 
 @turncache
 def get_damage_by_zombies(turn: int, data: UnitResponse, world: WorldResponse) -> dict[Coordinates, int]:
@@ -179,6 +191,7 @@ def get_damage_by_zombies(turn: int, data: UnitResponse, world: WorldResponse) -
             damage[coords] += dmg
     return dict(damage)
 
+
 @turncache
 def get_connected_base(turn: int, data: UnitResponse, world: WorldResponse) -> list[Tower]:
     component = []
@@ -203,7 +216,7 @@ def get_connected_base(turn: int, data: UnitResponse, world: WorldResponse) -> l
             if neighbor not in visited:
                 visited.add(neighbor)
                 q.append(neighbor)
-    
+
     return component
 
 
@@ -212,14 +225,14 @@ def get_attacks(data: UnitResponse, world: WorldResponse) -> list[AttackCommand]
     attacks = []
     base = get_connected_base(turn, data, world)
 
-    zombies      = get_zombies(turn, data, world)
+    zombies = get_zombies(turn, data, world)
     enemy_towers = get_enemy_towers(turn, data, world)
 
     damage_applied: defaultdict[Coordinates, int] = defaultdict(int)
     for tower in base:
         x1 = tower.x
         y1 = tower.y
-        r  = tower.r
+        r = tower.r
 
         reachable_zombies = []
         reachable_enemy_towers = []
@@ -230,7 +243,7 @@ def get_attacks(data: UnitResponse, world: WorldResponse) -> list[AttackCommand]
                 if r ** 2 < (x1 - x2) ** 2 + (y1 - y2) ** 2:
                     continue
 
-                coords = Coordinates(x2, y2) 
+                coords = Coordinates(x2, y2)
                 if coords in zombies:
                     reachable_zombies.extend(zombies[coords])
                 if coords in enemy_towers:
@@ -266,9 +279,9 @@ def valid_build(coords: Coordinates, data: UnitResponse, world: WorldResponse) -
     turn = data.turn
 
     enemy_towers = get_enemy_towers(turn, data, world)
-    zombies      = get_zombies(turn, data, world)
-    towers       = get_towers(turn, data, world)
-    zpots        = get_zpots(turn, data, world)
+    zombies = get_zombies(turn, data, world)
+    towers = get_towers(turn, data, world)
+    zpots = get_zpots(turn, data, world)
 
     if coords in enemy_towers:
         return False
@@ -308,23 +321,11 @@ def get_builds(data: UnitResponse, world: WorldResponse) -> list[BuildCommand]:
     # Не строиться слишком рядом с базами
     enemy_blocks = data.enemy_towers
 
-    to_remove = []
-    if (enemy_blocks is not None):
-        for spot in spots:
-            for enemy_block in enemy_blocks:
-                if 3 ** 2 >= (spot.x - enemy_block.x) ** 2 + (spot.y - enemy_block.y) ** 2:
-                    to_remove.append(spot)
-                    continue
-
-    for rem in to_remove:
-        if rem in spots:
-            spots.remove(rem)
-
     # Давать приоритет человеко-ходам, а потом ИИ
     builds = []
     for mode in ['human', 'ai']:
 
-        if mode == 'ai' and not human_controls.ai_expand :
+        if mode == 'ai' and not human_controls.ai_expand:
             continue
 
         random.shuffle(spots)
@@ -334,11 +335,8 @@ def get_builds(data: UnitResponse, world: WorldResponse) -> list[BuildCommand]:
             human_controls_to_Coord = set(map(lambda x: Coordinates(x[0], x[1]), list(human_controls.clicked_squares)))
             acting_spots = list(set(spots) & human_controls_to_Coord)
 
-
-
         acting_spots = acting_spots[:gold]
         gold -= len(acting_spots)
-
 
         for spot in acting_spots:
             builds.append(BuildCommand.from_coordinates(spot))
@@ -347,8 +345,6 @@ def get_builds(data: UnitResponse, world: WorldResponse) -> list[BuildCommand]:
 
 
 def get_move_base(data: UnitResponse, world: WorldResponse) -> Coordinates:
-
-
     turn = data.turn
 
     base = get_connected_base(turn, data, world)
@@ -360,7 +356,7 @@ def get_move_base(data: UnitResponse, world: WorldResponse) -> Coordinates:
                          )
         return Coordinates(best_tower.x, best_tower.y)
 
-    main_tower = (-1,-1)
+    main_tower = (-1, -1)
 
     for tower in base:
         if tower.is_head:
@@ -374,13 +370,16 @@ def get_move_base(data: UnitResponse, world: WorldResponse) -> Coordinates:
     return Coordinates(main_tower[0], main_tower[1])
 
 
-
-
-
-
 def get_command(data: UnitResponse, world: WorldResponse):
-    attacks   = get_attacks(data, world)
-    builds    = get_builds(data, world)
+
+    t1 = time() * 1000
+    attacks = get_attacks(data, world)
+    t2 = time() * 1000
+    builds = get_builds(data, world)
+    t3 = time() * 1000
     move_base = get_move_base(data, world)
+    t4 = time() * 1000
+
+    print(int(t2 - t1), int(t3 - t2), int(t4 - t3), ' time wasted')
 
     return Command(attacks, builds, move_base)

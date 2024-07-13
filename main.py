@@ -46,7 +46,7 @@ def main():
         tleft = data.turn_ends_in_ms
         print("Turn ends in %dms" % tleft)
 
-        if (data.turn % 3 == 0):
+        if (data.turn % 3 == 2):
             world = API.world()
 
         cmd = get_command(data, world)
