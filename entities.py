@@ -275,7 +275,9 @@ class WorldResponse:
     @classmethod
     def deserialize(cls, data: dict) -> "WorldResponse":
         realm_name = data.get('realmName', 'unknown-realm')
-        zpots = data.get('zpots', [])
+        zpots = []
+        for zpot in data.get('zpots', []):
+            zpots.append(Zpot.deserialize(zpot))
         return cls(realm_name, zpots)
 
 
