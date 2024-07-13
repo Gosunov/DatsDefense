@@ -24,6 +24,8 @@ def print_status(data: UnitResponse,
 data = None
 world = None
 
+
+
 def main():
     global data, world
     API = MockApi()
@@ -43,6 +45,9 @@ def main():
         t1 = int(time() * 10**3)
         tleft = data.turn_ends_in_ms
         print("Turn ends in %dms" % tleft)
+
+        if (data.turn % 10 == 0):
+            world = API.world()
 
         cmd = get_command(data, world)
 

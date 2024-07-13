@@ -24,7 +24,7 @@ def update_scale(delta):
 min_x = 1
 min_y = 1
 
-clicked_squares = set()
+
 
 def rescale(x, y):
     return (100 + (x - min_x) * 700 / scale, 100 + (y - min_y) * 700 / scale,)
@@ -107,13 +107,13 @@ def draw(event):
         for dy in range(-radius, radius + 1):
             (board_dx, board_dy) = (board_x + dx, board_y + dy)
             if euclid_dist((board_x, board_y), (board_dx, board_dy)) < radius:
-                global clicked_squares
+
 
                 if mouse_down == 'Draw':
-                    clicked_squares.add((board_dx, board_dy))
+                    human_controls.clicked_squares.add((board_dx, board_dy))
                 if mouse_down == 'Erase':
-                    if (board_dx, board_dy) in clicked_squares:
-                        clicked_squares.remove((board_dx, board_dy))
+                    if (board_dx, board_dy) in human_controls.clicked_squares:
+                        human_controls.clicked_squares.remove((board_dx, board_dy))
 
 def visual():
     global min_x, min_y, scale, scale_id, mouse_down, motion_reverse, brush_radius
@@ -223,19 +223,20 @@ def visual():
                 draw(event)
 
 
-
-        for cl_sq in clicked_squares:
-            pygame.draw.rect(screen, (255, 255, 0), to_rect(cl_sq[0], cl_sq[1], 1.5))
-
         if (main.world.zpots is not None):
             for spawner in main.world.zpots:
                 if spawner.type != 'default': continue
                 pygame.draw.rect(screen, (0, 100, 100), to_rect(spawner.x, spawner.y, 30))
 
+        for cl_sq in human_controls.clicked_squares:
+            pygame.draw.rect(screen, (255, 255, 0), to_rect(cl_sq[0], cl_sq[1], 1.5))
+
+
+
         if (base is not None):
             for tower in base:
                 if tower.is_head:
-                    pygame.draw.rect(screen, (100, 0, 100), to_rect(tower.x, tower.y, 10))
+                    pygame.draw.rect(screen, (100, 0, 100), to_rect(tower.x, tower.y, 14))
 
         if (base is not None):
             for tower in base:
@@ -245,8 +246,10 @@ def visual():
                     pygame.draw.rect(screen, (150, 0, 150), to_rect(tower.x, tower.y))
         if (zombies is not None):
             for zombie in zombies:
-                pygame.draw.rect(screen, (0, 255, 0), to_rect(zombie.x, zombie.y))
-
+                if (zombie.type != 'liner'):
+                    pygame.draw.rect(screen, (0, 255, 0), to_rect(zombie.x, zombie.y))
+                else:
+                    pygame.draw.rect(screen, (150,150, 150), to_rect(zombie.x, zombie.y))
 
         if (enemy_blocks is not None):
             for enemy_block in enemy_blocks:

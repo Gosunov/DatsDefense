@@ -191,7 +191,7 @@ def valid_build(coords: Coordinates, data: UnitResponse, world: WorldResponse) -
     if coords in towers:
         return False
 
-    for neighbour in neighbours4(coords):
+    for neighbour in neighbours8(coords):
         if neighbour in zpots:
             return False
 
@@ -216,12 +216,37 @@ def get_builds(data: UnitResponse, world: WorldResponse) -> list[BuildCommand]:
     spots = list(set(spots))
     spots = filter(lambda spot: valid_build(spot, data, world), spots)
     spots = list(spots)
-    random.shuffle(spots)
-    spots = spots[:gold]
-    
+
+    # Не строиться слишком рядом с базами
+    enemy_blocks = data.enemy_towers
+
+    to_remove = []
+    if (enemy_blocks is not None):
+        for spot in spots:
+            for enemy_block in enemy_blocks:
+                if 2 ** 2 >= (spot.x - enemy_block.x) ** 2 + (spot.y - enemy_block.y) ** 2:
+                    to_remove.append(spot)
+                    continue
+
+    for rem in to_remove:
+        spots.remove(rem)
+
+    # Давать приоритет человеко-ходам, а потом ИИ
     builds = []
-    for spot in spots:
-        builds.append(BuildCommand.from_coordinates(spot))
+    for mode in ['human', 'ai']:
+        random.shuffle(spots)
+
+        acting_spots = spots.copy()
+        if mode == 'human':
+            human_controls_to_Coord = set(map(lambda x: Coordinates(x[0], x[1]), list(human_controls.clicked_squares)))
+            acting_spots = list(set(spots) | human_controls_to_Coord)
+
+        acting_spots = acting_spots[:gold]
+        gold -= len(acting_spots)
+
+
+        for spot in acting_spots:
+            builds.append(BuildCommand.from_coordinates(spot))
 
     return builds
 
@@ -238,7 +263,7 @@ def get_move_base(data: UnitResponse, world: WorldResponse) -> Coordinates:
     if human_controls.player_move_x is not None and human_controls.player_move_y is not None:
         if not ((human_controls.player_move_x == main_tower[0]) and (human_controls.player_move_y == main_tower[1])):
             print('Moving center to ', int(human_controls.player_move_x), int(human_controls.player_move_y))
-        return Coordinates(human_controls.player_move_x, human_controls.player_move_y)
+        return Coordinates(int(human_controls.player_move_x), int(human_controls.player_move_y))
 
     return Coordinates(main_tower[0], main_tower[1])
 
