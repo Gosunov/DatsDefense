@@ -10,13 +10,16 @@ from api import mainServerApi, testServerApi, MockApi
 def get_attacks(data: UnitResponse, world: WorldResponse) -> list[AttackCommand]:
     attacks = []
     base = data.base
+    
     zombies = data.zombies
     zombies.sort(key=lambda zombie: zombie.health)
     enemy_towers = data.enemy_towers
+    enemy_towers.sort(key=lambda tower: not tower.is_head) # heads tower first
+    targets = zombies + enemy_towers
+
 
     damage_applied = defaultdict(int) # damage_applied[<coords>] = <damage> 
     for tower in base:
-        targets = zombies + enemy_towers
         for target in targets:
             x2 = target.x
             y2 = target.y

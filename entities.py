@@ -70,6 +70,7 @@ class EnemyTower:
         self.y = y
         self.last_attack = last_attack
         self.id = id
+        self.is_head = is_head
         self.health = health
         self.attack = attack
 
