@@ -95,7 +95,7 @@ class Zombie:
     def __init__(self,
                  x: int,
                  y: int,
-                 wait_turns: str,
+                 wait_turns: int,
                  type: str, # TODO: Literal["normal" | ...]
                  speed: int,
                  id: str,

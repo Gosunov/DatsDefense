@@ -1,12 +1,39 @@
 import random
-from collections import defaultdict
+from collections import defaultdict, deque
 
 from entities import *
 from time import time
 
 from utils import turncache
 
+
 import human_controls
+
+def neighbours4(coords: Coordinates) -> tuple[Coordinates, Coordinates, Coordinates, Coordinates]:
+    x = coords.x
+    y = coords.y
+
+    n = Coordinates(x, y + 1)
+    e = Coordinates(x + 1, y)
+    s = Coordinates(x, y - 1)
+    w = Coordinates(x - 1, y)
+    return (n, e, s, w)
+
+def neighbours8(coords: Coordinates) -> tuple[Coordinates, Coordinates, Coordinates, Coordinates, Coordinates, Coordinates, Coordinates, Coordinates]:
+    x = coords.x
+    y = coords.y
+
+    nn = Coordinates(x + 0, y + 1)
+    ne = Coordinates(x + 1, y + 1)
+    ee = Coordinates(x + 1, y + 0)
+    se = Coordinates(x + 1, y - 1)
+    ss = Coordinates(x + 0, y - 1)
+    sw = Coordinates(x - 1, y - 1)
+    ww = Coordinates(x - 1, y + 0)
+    nw = Coordinates(x - 1, y + 1)
+    return (nn, ne, ee, se, ss, sw, ww, nw)
+
+
 
 @turncache
 def get_zombies(turn: int, data: UnitResponse, world: WorldResponse) -> dict[Coordinates, list[Zombie]]:
@@ -33,6 +60,14 @@ def get_towers(turn: int, data: UnitResponse, world: WorldResponse) -> dict[Coor
     return coords_towers
 
 @turncache
+def get_head_tower(turn: int, data: UnitResponse, world: WorldResponse) -> Tower:
+    for tower in data.base:
+        if tower.is_head:
+            return tower
+    print('[ERROR]: impossible state')
+    return Tower(-1, -1, -1, Coordinates(-1, -1), False, '', -1, -1)
+
+@turncache
 def get_zpots(turn: int, data: UnitResponse, world: WorldResponse) -> dict[Coordinates, Zpot]:
     coords_zpots = dict()
     for zpot in world.zpots:
@@ -43,15 +78,55 @@ def get_zpots(turn: int, data: UnitResponse, world: WorldResponse) -> dict[Coord
 @turncache
 def get_damage_by_zombies(turn: int, data: UnitResponse, world: WorldResponse) -> dict[Coordinates, int]:
     towers = get_towers(turn, data, world)
+    damage = defaultdict(int)
+
     for zombie in data.zombies:
-        pass
-    return {}
+        if zombie.wait_turns != 0:
+            continue
+        if zombie.type == 'normal':
+            pass
+        if zombie.type == 'fast':
+            pass
+        if zombie.type == 'bomber':
+            pass
+        if zombie.type == 'liner':
+            pass
+        if zombie.type == 'juggernaut':
+            pass
+        if zombie.type == 'chaos_knight':
+            pass
+    return dict(damage)
+
+@turncache
+def get_connected_base(turn: int, data: UnitResponse, world: WorldResponse) -> list[Tower]:
+    component = []
+
+    head = get_head_tower(turn, data, world)
+    towers = get_towers(turn, data, world)
+
+    head_coords = Coordinates(head.x, head.y)
+
+    q = deque()
+    q.append(head_coords)
+    visited = set()
+    visited.add(head_coords)
+
+    while q:
+        coords = q.popleft()
+        component.append(towers[coords])
+
+        for neighbor in neighbours4(coords):
+            if neighbor not in visited:
+                visited.add(neighbor)
+                q.append(neighbor)
+    
+    return component
 
 
 def get_attacks(data: UnitResponse, world: WorldResponse) -> list[AttackCommand]:
     turn = data.turn
     attacks = []
-    base = data.base
+    base = get_connected_base(turn, data, world)
 
     zombies      = get_zombies(turn, data, world)
     enemy_towers = get_enemy_towers(turn, data, world)
@@ -97,17 +172,6 @@ def get_attacks(data: UnitResponse, world: WorldResponse) -> list[AttackCommand]
     return attacks
 
 
-def neighbours4(coords: Coordinates) -> tuple[Coordinates, Coordinates, Coordinates, Coordinates]:
-    x = coords.x
-    y = coords.y
-
-    n = Coordinates(x + 1, y)
-    e = Coordinates(x, y + 1)
-    s = Coordinates(x - 1, y)
-    w = Coordinates(x, y - 1)
-    return (n, e, s, w)
-
-
 def valid_build(coords: Coordinates, data: UnitResponse, world: WorldResponse) -> bool:
     turn = data.turn
 
@@ -126,17 +190,21 @@ def valid_build(coords: Coordinates, data: UnitResponse, world: WorldResponse) -
         return False
 
     for neighbour in neighbours4(coords):
-        if neighbour in enemy_towers:
-            return False
         if neighbour in zpots:
+            return False
+
+    for neighbour in neighbours8(coords):
+        if neighbour in enemy_towers:
             return False
 
     return True
 
 
 def get_builds(data: UnitResponse, world: WorldResponse) -> list[BuildCommand]:
+    turn = data.turn
+
     spots = list()
-    base = data.base
+    base = get_connected_base(turn, data, world)
     gold = data.player.gold
 
     for tower in base:
