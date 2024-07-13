@@ -21,38 +21,42 @@ def print_status(data: UnitResponse,
         (points, base_size, zombie_kills, gold, attacks, builds, rejected)
     )
 
+data = None
+world = None
 
-# API = MockApi()
-API = testServerApi
-# API = mainServerApi
+def main():
+    global data, world
+    API = MockApi()
+    #API = testServerApi
+    # API = mainServerApi
 
-try:
-    starts_in_sec = API.participate().starts_in_sec
-    print('Round is starting in %ds, waiting...' % starts_in_sec)
-    sleep(starts_in_sec + 0.5)
-except:
-    pass
+    try:
+        starts_in_sec = API.participate().starts_in_sec
+        print('Round is starting in %ds, waiting...' % starts_in_sec)
+        sleep(starts_in_sec + 0.75)
+    except:
+        pass
 
-world = API.world()
-while True:
-    data = API.units()
-    t1 = int(time() * 10**3)
-    tleft = data.turn_ends_in_ms
-    print("Turn ends in %dms" % tleft)
+    world = API.world()
+    while True:
+        data = API.units()
+        t1 = int(time() * 10**3)
+        tleft = data.turn_ends_in_ms
+        print("Turn ends in %dms" % tleft)
 
-    cmd = get_command(data, world)
+        cmd = get_command(data, world)
 
-    resp = API.command(cmd)
-    for error in resp.errors:
-        if error == "you are dead":
-            print("We are dead :(")
-            exit(0)
-        print(error)
+        resp = API.command(cmd)
+        for error in resp.errors:
+            if error == "you are dead":
+                print("We are dead :(")
+                exit(0)
+            print(error)
 
-    print_status(data, world, cmd, resp)
-    t2 = int(time() * 10**3)
-    tused = t2 - t1
-    print("Finished turn %d in (%dms/%dms)" % (data.turn, tused, tleft))
-    textra = tleft - tused
-    if textra >= 0:
-        sleep(textra / 10**3)
+        print_status(data, world, cmd, resp)
+        t2 = int(time() * 10**3)
+        tused = t2 - t1
+        print("Finished turn %d in (%dms/%dms)" % (data.turn, tused, tleft))
+        textra = tleft - tused
+        if textra >= 0:
+            sleep(textra / 10**3)

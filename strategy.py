@@ -6,6 +6,9 @@ from time import time
 
 from utils import turncache
 
+
+import human_controls
+
 def neighbours4(coords: Coordinates) -> tuple[Coordinates, Coordinates, Coordinates, Coordinates]:
     x = coords.x
     y = coords.y
@@ -15,7 +18,6 @@ def neighbours4(coords: Coordinates) -> tuple[Coordinates, Coordinates, Coordina
     s = Coordinates(x, y - 1)
     w = Coordinates(x - 1, y)
     return (n, e, s, w)
-
 
 def neighbours8(coords: Coordinates) -> tuple[Coordinates, Coordinates, Coordinates, Coordinates, Coordinates, Coordinates, Coordinates, Coordinates]:
     x = coords.x
@@ -30,6 +32,8 @@ def neighbours8(coords: Coordinates) -> tuple[Coordinates, Coordinates, Coordina
     ww = Coordinates(x - 1, y + 0)
     nw = Coordinates(x - 1, y + 1)
     return (nn, ne, ee, se, ss, sw, ww, nw)
+
+
 
 @turncache
 def get_zombies(turn: int, data: UnitResponse, world: WorldResponse) -> dict[Coordinates, list[Zombie]]:
@@ -224,10 +228,19 @@ def get_builds(data: UnitResponse, world: WorldResponse) -> list[BuildCommand]:
 
 def get_move_base(data: UnitResponse, world: WorldResponse) -> Coordinates:
     base = data.base
+
+    main_tower = (-1,-1)
+
     for tower in base:
         if tower.is_head:
-            return Coordinates(tower.x, tower.y)
-    return Coordinates(-1, -1)
+            main_tower = (tower.x, tower.y)
+
+    if human_controls.player_move_x is not None and human_controls.player_move_y is not None:
+        if not ((human_controls.player_move_x == main_tower[0]) and (human_controls.player_move_y == main_tower[1])):
+            print('Moving center to ', int(human_controls.player_move_x), int(human_controls.player_move_y))
+        return Coordinates(human_controls.player_move_x, human_controls.player_move_y)
+
+    return Coordinates(main_tower[0], main_tower[1])
 
 
 def get_command(data: UnitResponse, world: WorldResponse):

@@ -4,10 +4,11 @@ import json
 
 import main
 
+import human_controls
 
-
-scale_id = 10
-scales = [(i/10)**2 for i in range(1,400,5)]
+default_scale_id = 10
+scale_id = default_scale_id
+scales = [(i/10)**2 for i in range(1,1000,10)]
 scale = None
 def update_scale(delta):
     global scale, scale_id
@@ -97,11 +98,15 @@ def draw(event):
     print((board_x, board_y))
     global brush_radius
 
+    radius = brush_radius
 
-    for dx in range(-brush_radius, brush_radius + 1):
-        for dy in range(-brush_radius, brush_radius + 1):
+    if mouse_down == 'Erase':
+        radius *= 2
+
+    for dx in range(-radius, radius + 1):
+        for dy in range(-radius, radius + 1):
             (board_dx, board_dy) = (board_x + dx, board_y + dy)
-            if euclid_dist((board_x, board_y), (board_dx, board_dy)) < brush_radius:
+            if euclid_dist((board_x, board_y), (board_dx, board_dy)) < radius:
                 global clicked_squares
 
                 if mouse_down == 'Draw':
@@ -138,7 +143,7 @@ def visual():
         zombies = main.data.zombies
         enemy_blocks = main.data.enemy_towers
 
-        if scale is None:
+        if scale is None or pressed_keys[pygame.K_r]:
 
             min_x = 100000
             max_x = -100000
@@ -152,21 +157,21 @@ def visual():
 
                 min_y = min(min_y, obj.y)
                 max_y = max(max_y, obj.y)
-
+            scale_id = default_scale_id
             scale = scales[scale_id]
 
         pressed_keys = pygame.key.get_pressed()
         if pressed_keys[pygame.K_w]:
-            min_y += 0.01 * scale * motion_reverse
+            min_y += 0.01 * scale * motion_reverse * (1 + pressed_keys[pygame.K_LSHIFT] * 5)
 
         if pressed_keys[pygame.K_s]:
-            min_y -= 0.01 * scale * motion_reverse
+            min_y -= 0.01 * scale * motion_reverse * (1 + pressed_keys[pygame.K_LSHIFT] * 5)
 
         if pressed_keys[pygame.K_a]:
-            min_x += 0.01 * scale * motion_reverse
+            min_x += 0.01 * scale * motion_reverse * (1 + pressed_keys[pygame.K_LSHIFT] * 5)
 
         if pressed_keys[pygame.K_d]:
-            min_x -= 0.01 * scale * motion_reverse
+            min_x -= 0.01 * scale * motion_reverse * (1 + pressed_keys[pygame.K_LSHIFT] * 5)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -193,8 +198,12 @@ def visual():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:  # левая кнопка мыши
 
-                    mouse_down = 'Draw'
-                    draw(event)
+                    if pressed_keys[pygame.K_LSHIFT]:
+                        human_controls.player_move_x = reverse_scale(event.pos)[0]
+                        human_controls.player_move_y = reverse_scale(event.pos)[1]
+                    else:
+                        mouse_down = 'Draw'
+                        draw(event)
 
                 if event.button == 3:  # правая кнопка мыши
                     mouse_down = 'Erase'
@@ -215,6 +224,8 @@ def visual():
 
 
 
+        for cl_sq in clicked_squares:
+            pygame.draw.rect(screen, (255, 255, 0), to_rect(cl_sq[0], cl_sq[1], 1.5))
 
         if (main.world.zpots is not None):
             for spawner in main.world.zpots:
@@ -241,14 +252,15 @@ def visual():
             for enemy_block in enemy_blocks:
                 pygame.draw.rect(screen, (255, 0, 0), to_rect(enemy_block.x, enemy_block.y))
 
-        for cl_sq in clicked_squares:
-            pygame.draw.rect(screen, (255, 255, 0), to_rect(cl_sq[0], cl_sq[1]))
+
 
         if (main.world.zpots is not None):
             for spawner in main.world.zpots:
                 if spawner.type != 'default': continue
                 pygame.draw.rect(screen, (0, 255, 255), to_rect(spawner.x, spawner.y))
 
+        if human_controls.player_move_x is not None and human_controls.player_move_y is not None:
+            pygame.draw.rect(screen, (0, 0, 0), to_rect(human_controls.player_move_x, human_controls.player_move_y, 2))
 
         text_surface = my_font.render(f'Brush Radius: {brush_radius}' , False, (0, 0, 0))
         screen.blit(text_surface, (0, 0))
