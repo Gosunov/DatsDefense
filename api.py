@@ -77,7 +77,7 @@ class ServerApi(Api):
         data = self.request('get', '/rounds/zombidef')
         return RoundsResponse.deserialize(data)
 
-testServerApi = ServerApi('https://games-test.datsteam.dev', log=True)
+testServerApi = ServerApi('https://games-test.datsteam.dev', log=False)
 mainServerApi = ServerApi('https://games.datsteam.dev')
 
 

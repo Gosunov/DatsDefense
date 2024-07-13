@@ -6,6 +6,9 @@ from time import time
 
 from utils import turncache
 
+
+import human_controls
+
 def neighbours4(coords: Coordinates) -> tuple[Coordinates, Coordinates, Coordinates, Coordinates]:
     x = coords.x
     y = coords.y
@@ -29,6 +32,7 @@ def neighbours8(coords: Coordinates) -> tuple[Coordinates, Coordinates, Coordina
     ww = Coordinates(x - 1, y + 0)
     nw = Coordinates(x - 1, y + 1)
     return (nn, ne, ee, se, ss, sw, ww, nw)
+
 
 
 @turncache
@@ -269,7 +273,7 @@ def valid_build(coords: Coordinates, data: UnitResponse, world: WorldResponse) -
     if coords in towers:
         return False
 
-    for neighbour in neighbours4(coords):
+    for neighbour in neighbours8(coords):
         if neighbour in zpots:
             return False
 
