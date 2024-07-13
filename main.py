@@ -28,9 +28,9 @@ world = None
 
 def main():
     global data, world
-    API = MockApi()
+    #API = MockApi()
     #API = testServerApi
-    # API = mainServerApi
+    API = mainServerApi
 
     try:
         starts_in_sec = API.participate().starts_in_sec
@@ -46,7 +46,7 @@ def main():
         tleft = data.turn_ends_in_ms
         print("Turn ends in %dms" % tleft)
 
-        if (data.turn % 10 == 0):
+        if (data.turn % 3 == 0):
             world = API.world()
 
         cmd = get_command(data, world)

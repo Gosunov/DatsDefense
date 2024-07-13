@@ -18,3 +18,5 @@ player_move_x = None
 player_move_y = None
 clicked_squares = set()
 auto_dodge = 0
+ai_expand = 1
+focus_zombie = 1

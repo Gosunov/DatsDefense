@@ -173,7 +173,7 @@ class UnitResponse:
         for tower in dict_get_not_none(data, 'base', []):
             base.append(Tower.deserialize(tower))
         enemy_towers = []
-        for enemy_tower in dict_get_not_none(data, 'enemyTowers', []):
+        for enemy_tower in dict_get_not_none(data, 'enemyBlocks', []):
             enemy_towers.append(EnemyTower.deserialize(enemy_tower))
         zombies = []
         for zombie in dict_get_not_none(data, 'zombies', []):

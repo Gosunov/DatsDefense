@@ -238,9 +238,15 @@ def get_attacks(data: UnitResponse, world: WorldResponse) -> list[AttackCommand]
                     reachable_enemy_towers.append(enemy_tower)
 
         reachable_zombies.sort(key=lambda zombie: zombie.health)
-        reachable_enemy_towers.sort(key=lambda enemy_tower: -enemy_tower.is_head)
 
-        targets = reachable_zombies + reachable_enemy_towers
+        reachable_enemy_head_towers = list(filter(lambda tower: tower.is_head, reachable_enemy_towers))
+        reachable_enemy_usual_towers = list(filter(lambda tower: not tower.is_head, reachable_enemy_towers))
+
+        if human_controls.focus_zombie:
+            targets = reachable_enemy_head_towers + reachable_zombies + reachable_enemy_usual_towers
+        else:
+            targets = reachable_enemy_head_towers + reachable_enemy_usual_towers + reachable_zombies
+
         for target in targets:
             x2 = target.x
             y2 = target.y
@@ -306,22 +312,29 @@ def get_builds(data: UnitResponse, world: WorldResponse) -> list[BuildCommand]:
     if (enemy_blocks is not None):
         for spot in spots:
             for enemy_block in enemy_blocks:
-                if 2 ** 2 >= (spot.x - enemy_block.x) ** 2 + (spot.y - enemy_block.y) ** 2:
+                if 3 ** 2 >= (spot.x - enemy_block.x) ** 2 + (spot.y - enemy_block.y) ** 2:
                     to_remove.append(spot)
                     continue
 
     for rem in to_remove:
-        spots.remove(rem)
+        if rem in spots:
+            spots.remove(rem)
 
     # Давать приоритет человеко-ходам, а потом ИИ
     builds = []
     for mode in ['human', 'ai']:
+
+        if mode == 'ai' and not human_controls.ai_expand :
+            continue
+
         random.shuffle(spots)
 
         acting_spots = spots.copy()
         if mode == 'human':
             human_controls_to_Coord = set(map(lambda x: Coordinates(x[0], x[1]), list(human_controls.clicked_squares)))
-            acting_spots = list(set(spots) | human_controls_to_Coord)
+            acting_spots = list(set(spots) & human_controls_to_Coord)
+
+
 
         acting_spots = acting_spots[:gold]
         gold -= len(acting_spots)
@@ -335,11 +348,12 @@ def get_builds(data: UnitResponse, world: WorldResponse) -> list[BuildCommand]:
 
 def get_move_base(data: UnitResponse, world: WorldResponse) -> Coordinates:
 
+
     turn = data.turn
 
     base = get_connected_base(turn, data, world)
     damage = get_damage_by_zombies(turn, data, world)
-
+    print(damage)
     if human_controls.auto_dodge:
         best_tower = min(base,
                          key=lambda tower: damage.get(Coordinates(tower.x, tower.y), 0)

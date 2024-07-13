@@ -200,6 +200,10 @@ def visual():
 
                     if pressed_keys[pygame.K_b]:
                         human_controls.auto_dodge ^= 1
+                    if pressed_keys[pygame.K_f]:
+                        human_controls.focus_zombie ^= 1
+                    elif pressed_keys[pygame.K_e]:
+                        human_controls.ai_expand ^= 1
                     elif pressed_keys[pygame.K_LSHIFT]:
                         human_controls.player_move_x = reverse_scale(event.pos)[0]
                         human_controls.player_move_y = reverse_scale(event.pos)[1]
@@ -230,15 +234,17 @@ def visual():
                 if spawner.type != 'default': continue
                 pygame.draw.rect(screen, (0, 100, 100), to_rect(spawner.x, spawner.y, 30))
 
+        if (base is not None):
+            for tower in base:
+                if tower.is_head:
+                    pygame.draw.rect(screen, (100, 0, 100), to_rect(tower.x, tower.y, 14))
+
         for cl_sq in human_controls.clicked_squares:
             pygame.draw.rect(screen, (255, 255, 0), to_rect(cl_sq[0], cl_sq[1], 1.5))
 
 
 
-        if (base is not None):
-            for tower in base:
-                if tower.is_head:
-                    pygame.draw.rect(screen, (100, 0, 100), to_rect(tower.x, tower.y, 14))
+
 
         if (base is not None):
             for tower in base:
@@ -270,11 +276,20 @@ def visual():
         text_surface = my_font.render(f'Brush Radius: {brush_radius}' , False, (0, 0, 0))
         screen.blit(text_surface, (0, 0))
 
-        text_surface = my_font.render(f'Motion Reverse: {motion_reverse}', False, (0, 0, 0))
-        screen.blit(text_surface, (0, 80))
+        #text_surface = my_font.render(f'Motion Reverse: {motion_reverse}', False, (0, 0, 0))
+        #screen.blit(text_surface, (0, 80))
 
         text_surface = my_font.render(f'AutoDodge: {human_controls.auto_dodge}', False, (0, 0, 0))
-        screen.blit(text_surface, (0, 160))
+        screen.blit(text_surface, (0, 60))
+
+        text_surface = my_font.render(f'AI Expand: {human_controls.ai_expand}', False, (0, 0, 0))
+        screen.blit(text_surface, (0, 120))
+
+        text_surface = my_font.render(f'Gold: {main.data.player.gold}', False, (0, 0, 0))
+        screen.blit(text_surface, (0, 180))
+
+        text_surface = my_font.render(f'Focus Zombie: {human_controls.focus_zombie}', False, (0, 0, 0))
+        screen.blit(text_surface, (0, 240))
 
         # Flip the display
         pygame.display.flip()
