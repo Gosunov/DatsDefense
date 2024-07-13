@@ -46,4 +46,4 @@ while True:
     t2 = int(time() * 10**3)
     tused = t2 - t1
     print("Finished turn %d in %dms" % (data.turn, tused))
-    sleep((tleft - tused) / 10**6)
+    sleep((tleft - tused) / 10**3)
