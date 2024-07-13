@@ -113,6 +113,8 @@ def get_connected_base(turn: int, data: UnitResponse, world: WorldResponse) -> l
 
     while q:
         coords = q.popleft()
+        if coords not in towers:
+            continue
         component.append(towers[coords])
 
         for neighbor in neighbours4(coords):
