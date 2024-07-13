@@ -18,12 +18,6 @@ def get_attacks(data: UnitResponse, world: WorldResponse) -> list[AttackCommand]
     for e_tower in enemy_towers:
         targets[(e_tower.x, e_tower.y)] = (e_tower, 5)
 
-
-
-
-
-
-
     damage_applied = defaultdict(int) # damage_applied[<coords>] = <damage> 
 
     square_radius = 5
@@ -44,12 +38,10 @@ def get_attacks(data: UnitResponse, world: WorldResponse) -> list[AttackCommand]
                 if damage_applied[target_coords] >= targets[(x2, y2)][0].health:
                     continue
 
-
-
                 x1 = tower.x
                 y1 = tower.y
                 r  = tower.r
-                
+
                 if r ** 2 >= (x1 - x2) ** 2 + (y1 - y2) ** 2:
                     cur_happiness = targets[(x2, y2)][1] * 100 - targets[(x2, y2)][0].health # [5 or 10] * 100 - health
                     if cur_happiness > happiness:
@@ -105,14 +97,14 @@ def get_command(data: UnitResponse, world: WorldResponse):
 
     attacks   = get_attacks(data, world)
     t2 = int(time() * 10 ** 3)
-    print(f'{(t2 - t1)} ms, attack')
+    print(f'{(t2 - t1)}', end=' ')
 
     builds    = get_builds(data, world)
     t3 = int(time() * 10 ** 3)
-    print(f'{(t3 - t2)} ms, build')
+    print(f'{(t3 - t2)}', end=' ')
 
     move_base = get_move_base(data, world)
     t4 = int(time() * 10 ** 3)
-    print(f'{(t4 - t3)} ms, move')
+    print(f'{(t4 - t3)} (att, bui, move)',)
 
     return Command(attacks, builds, move_base)
