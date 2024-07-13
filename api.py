@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 import requests
 import json
+from time import time
 
 from entities import *
 
@@ -25,8 +26,9 @@ class Api(ABC):
 
 
 class ServerApi(Api):
-    def __init__(self, base_url: str) -> None:
+    def __init__(self, base_url: str, log: bool = False) -> None:
         self.base_url = base_url
+        self.log = log
 
     def request(self, method, endpoint, body=None) -> dict:
         if body is None:
@@ -48,21 +50,34 @@ class ServerApi(Api):
     def command(self, cmd: Command) -> CommandResponse:
         body = cmd.serialize()
         data = self.request('post', '/play/zombidef/command', body)
+        if self.log:
+            now = str(int(time()))
+            filename = now + '-command-request.json'
+            json.dump(body, open('command/%s' % filename, 'w'))
+            filename = now + '-command-response.json'
+            json.dump(data, open('command/%s' % filename, 'w'))
+
         return CommandResponse.deserialize(data)
 
     def units(self) -> UnitResponse:
         data = self.request('get', '/play/zombidef/units')
+        if self.log:
+            filename = str(int(time())) + '-units.json'
+            json.dump(data, open('units/%s' % filename, 'w'))
         return UnitResponse.deserialize(data)
 
     def world(self) -> WorldResponse:
         data = self.request('get', '/play/zombidef/world')
+        if self.log:
+            filename = str(int(time())) + '-world.json'
+            json.dump(data, open('world/%s' % filename, 'w'))
         return WorldResponse.deserialize(data)
 
     def rounds(self) -> RoundsResponse:
         data = self.request('get', '/rounds/zombidef')
         return RoundsResponse.deserialize(data)
 
-testServerApi = ServerApi('https://games-test.datsteam.dev')
+testServerApi = ServerApi('https://games-test.datsteam.dev', log=True)
 mainServerApi = ServerApi('https://games.datsteam.dev')
 
 

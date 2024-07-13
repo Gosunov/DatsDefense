@@ -1,3 +1,9 @@
+def dict_get_not_none(d: dict, key, default):
+    v = d.get(key, default)
+    if v is None:
+        v = default
+    return v
+
 class Coordinates:
     def __init__(self,
                  x: int,
@@ -164,13 +170,13 @@ class UnitResponse:
     @classmethod
     def deserialize(cls, data: dict) -> "UnitResponse":
         base = []
-        for tower in data.get('base', []):
+        for tower in dict_get_not_none(data, 'base', []):
             base.append(Tower.deserialize(tower))
         enemy_towers = []
-        for enemy_tower in data.get('enemyTowers', []):
+        for enemy_tower in dict_get_not_none(data, 'enemyTowers', []):
             enemy_towers.append(EnemyTower.deserialize(enemy_tower))
         zombies = []
-        for zombie in data.get('zombies', []):
+        for zombie in dict_get_not_none(data, 'zombies', []):
             zombies.append(Zombie.deserialize(zombie))
         player = Player.deserialize(data.get('player', {}))
         realm_name = data.get('realmName', 'unknown-realm')
@@ -192,7 +198,7 @@ class AttackCommand:
 
     def serialize(self) -> dict:
         return {
-            "id": self.id,
+            "blockId": self.id,
             "target": self.target.serialize()
         }
 
@@ -231,10 +237,10 @@ class Command:
     @classmethod
     def deserialize(cls, data: dict) -> "Command":
         attacks = []
-        for attack in data.get('attacks', []):
+        for attack in data.get('attack', []):
             attacks.append(AttackCommand.deserialize(attack))
         builds = []
-        for build in data.get('builds', []):
+        for build in data.get('build', []):
             builds.append(BuildCommand.deserialize(build))
         move_base = Coordinates.deserialize(data.get('moveBase', {}))
         return cls(attacks, builds, move_base)
@@ -247,8 +253,8 @@ class Command:
         for build in self.builds:
             builds.append(build.serialize())
         return {
-            'attacks': attacks,
-            'builds': builds,
+            'attack': attacks,
+            'build': builds,
             'moveBase': self.move_base.serialize()
         }
 
@@ -334,14 +340,18 @@ class ParticipateResponse:
 
 
 class CommandResponse:
-    def __init__(self, accepted_commands: list[Command], errors: list[str]):
+    def __init__(self, accepted_commands: list[AttackCommand | BuildCommand | Coordinates], errors: list[str]):
         self.accepted_commands = accepted_commands
         self.errors = errors
 
     @classmethod
     def deserialize(cls, data: dict) -> "CommandResponse":
         accepted_commands = []
-        for accepted_command in data.get('acceptedCommands', []):
-            accepted_commands.append(Command.deserialize(accepted_command))
-        errors = data.get('errors', [])
+        commands = data.get('acceptedCommands', {})
+        for attack in commands.get('attacks', []):
+            accepted_commands.append(AttackCommand.deserialize(attack))
+        for build in commands.get('builds', []):
+            accepted_commands.append(AttackCommand.deserialize(build))
+        accepted_commands.append(Coordinates.deserialize(commands.get('moveBase')))
+        errors = dict_get_not_none(data, 'errors', [])
         return cls(accepted_commands, errors)
