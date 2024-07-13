@@ -81,7 +81,7 @@ pygame.font.init() # you have to call this at the start,
                    # if you want to use this module.
 my_font = pygame.font.SysFont('Comic Sans MS', 40)
 
-brush_radius = 5
+brush_radius = 1
 motion_reverse = -1
 
 def draw(event):

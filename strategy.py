@@ -158,7 +158,7 @@ def get_damage_by_zombies(turn: int, data: UnitResponse, world: WorldResponse) -
     damage = defaultdict(int)
 
     for zombie in data.zombies:
-        if zombie.wait_turns != 0:
+        if zombie.wait_turns != 1:
             continue
         zombie_damage: dict[Coordinates, int] = dict()
         if zombie.type == 'normal':
