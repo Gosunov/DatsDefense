@@ -17,3 +17,4 @@ player_mode = 'expand' # 'expand' 'save' 'turtle'
 player_move_x = None
 player_move_y = None
 clicked_squares = set()
+auto_dodge = 0

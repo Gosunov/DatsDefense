@@ -198,7 +198,9 @@ def visual():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:  # левая кнопка мыши
 
-                    if pressed_keys[pygame.K_LSHIFT]:
+                    if pressed_keys[pygame.K_b]:
+                        human_controls.auto_dodge ^= 1
+                    elif pressed_keys[pygame.K_LSHIFT]:
                         human_controls.player_move_x = reverse_scale(event.pos)[0]
                         human_controls.player_move_y = reverse_scale(event.pos)[1]
                     else:
@@ -270,6 +272,9 @@ def visual():
 
         text_surface = my_font.render(f'Motion Reverse: {motion_reverse}', False, (0, 0, 0))
         screen.blit(text_surface, (0, 80))
+
+        text_surface = my_font.render(f'AutoDodge: {human_controls.auto_dodge}', False, (0, 0, 0))
+        screen.blit(text_surface, (0, 160))
 
         # Flip the display
         pygame.display.flip()

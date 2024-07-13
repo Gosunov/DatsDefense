@@ -75,6 +75,83 @@ def get_zpots(turn: int, data: UnitResponse, world: WorldResponse) -> dict[Coord
         coords_zpots[coords] = zpot
     return coords_zpots
 
+
+def new_coords(coords: Coordinates, direction: str, speed: int):
+    x = coords.x
+    y = coords.y
+    if direction == 'up':
+        return Coordinates(x, y - speed)
+    if direction == 'down':
+        return Coordinates(x, y - speed)
+    if direction == 'right':
+        return Coordinates(x + speed, y)
+    if direction == 'left':
+        return Coordinates(x - speed, y)
+    print('[ERROR]: unreachable code')
+    return Coordinates(x, y)
+
+def normal_zombie_handler(zombie: Zombie, towers: dict[Coordinates, Tower]) -> dict[Coordinates, int]:
+    damage = defaultdict(int)
+    coords  = Coordinates(zombie.x, zombie.y)
+    ncoords = new_coords(coords, zombie.direction, zombie.speed)
+    if ncoords in towers:
+        damage[ncoords] += zombie.attack
+    return dict(damage)
+
+def fast_zombie_handler(zombie: Zombie, towers: dict[Coordinates, Tower]) -> dict[Coordinates, int]:
+    damage = defaultdict(int)
+    coords  = Coordinates(zombie.x, zombie.y)
+    ncoords = new_coords(coords, zombie.direction, zombie.speed)
+    if ncoords in towers:
+        damage[ncoords] += zombie.attack
+    return dict(damage)
+
+def bomber_handler(zombie: Zombie, towers: dict[Coordinates, Tower]) -> dict[Coordinates, int]:
+    damage = defaultdict(int)
+    coords  = Coordinates(zombie.x, zombie.y)
+    ncoords = new_coords(coords, zombie.direction, zombie.speed)
+    if ncoords in towers:
+        damage[ncoords] += zombie.attack
+        for neighbour in neighbours8(ncoords):
+            damage[neighbour] += zombie.attack
+    return dict(damage)
+
+def liner_handler(zombie: Zombie, towers: dict[Coordinates, Tower]) -> dict[Coordinates, int]:
+    damage = defaultdict(int)
+    coords  = Coordinates(zombie.x, zombie.y)
+    ncoords = new_coords(coords, zombie.direction, zombie.speed)
+
+    while ncoords in towers:
+        damage[ncoords] += zombie.attack
+        ncoords = new_coords(ncoords, zombie.direction, zombie.speed)
+    return dict(damage)
+
+def juggernaut_handler(zombie: Zombie, towers: dict[Coordinates, Tower]) -> dict[Coordinates, int]:
+    damage = defaultdict(int)
+    coords  = Coordinates(zombie.x, zombie.y)
+    ncoords = new_coords(coords, zombie.direction, zombie.speed)
+    if ncoords in towers:
+        damage[ncoords] += 1000
+    return dict(damage)
+
+def chaos_knight_handler(zombie: Zombie, towers: dict[Coordinates, Tower]) -> dict[Coordinates, int]:
+    damage = defaultdict(int)
+    coords  = Coordinates(zombie.x, zombie.y)
+    ncoords = new_coords(coords, zombie.direction, 2)
+
+    coords1: Coordinates
+    coords2: Coordinates
+    if zombie.direction in ['up', 'down']:
+        coords1 = new_coords(ncoords, 'right', 1)
+        coords2 = new_coords(ncoords, 'left', 1)
+    else:
+        coords1 = new_coords(ncoords, 'up', 1)
+        coords2 = new_coords(ncoords, 'down', 1)
+    damage[coords1] += zombie.attack // 2
+    damage[coords2] += zombie.attack // 2
+
+    return dict(damage)
+
 @turncache
 def get_damage_by_zombies(turn: int, data: UnitResponse, world: WorldResponse) -> dict[Coordinates, int]:
     towers = get_towers(turn, data, world)
@@ -83,18 +160,23 @@ def get_damage_by_zombies(turn: int, data: UnitResponse, world: WorldResponse) -
     for zombie in data.zombies:
         if zombie.wait_turns != 0:
             continue
+        zombie_damage: dict[Coordinates, int] = dict()
         if zombie.type == 'normal':
-            pass
-        if zombie.type == 'fast':
-            pass
-        if zombie.type == 'bomber':
-            pass
-        if zombie.type == 'liner':
-            pass
-        if zombie.type == 'juggernaut':
-            pass
-        if zombie.type == 'chaos_knight':
-            pass
+            zombie_damage = normal_zombie_handler(zombie, towers)
+        elif zombie.type == 'fast':
+            zombie_damage = fast_zombie_handler(zombie, towers)
+        elif zombie.type == 'bomber':
+            zombie_damage = bomber_handler(zombie, towers)
+        elif zombie.type == 'liner':
+            zombie_damage = liner_handler(zombie, towers)
+        elif zombie.type == 'juggernaut':
+            zombie_damage = juggernaut_handler(zombie, towers)
+        elif zombie.type == 'chaos_knight':
+            zombie_damage = chaos_knight_handler(zombie, towers)
+        else:
+            print('[ERROR]: unreachable code')
+        for coords, dmg in zombie_damage.items():
+            damage[coords] += dmg
     return dict(damage)
 
 @turncache
@@ -252,7 +334,17 @@ def get_builds(data: UnitResponse, world: WorldResponse) -> list[BuildCommand]:
 
 
 def get_move_base(data: UnitResponse, world: WorldResponse) -> Coordinates:
-    base = data.base
+
+    turn = data.turn
+
+    base = get_connected_base(turn, data, world)
+    damage = get_damage_by_zombies(turn, data, world)
+
+    if human_controls.auto_dodge:
+        best_tower = min(base,
+                         key=lambda tower: damage.get(Coordinates(tower.x, tower.y), 0)
+                         )
+        return Coordinates(best_tower.x, best_tower.y)
 
     main_tower = (-1,-1)
 
@@ -266,6 +358,10 @@ def get_move_base(data: UnitResponse, world: WorldResponse) -> Coordinates:
         return Coordinates(int(human_controls.player_move_x), int(human_controls.player_move_y))
 
     return Coordinates(main_tower[0], main_tower[1])
+
+
+
+
 
 
 def get_command(data: UnitResponse, world: WorldResponse):
