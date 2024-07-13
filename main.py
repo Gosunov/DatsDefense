@@ -4,6 +4,7 @@ from entities import *
 from api import mainServerApi, testServerApi, MockApi
 from strategy import get_command
 
+
 def print_status(data: UnitResponse, 
                  world: WorldResponse, 
                  cmd: Command, 
@@ -19,7 +20,6 @@ def print_status(data: UnitResponse,
         "points=%d,base_size=%d,zombie_kills=%d,gold=%d,attacks=%d,builds=%d,rejected=%d" % 
         (points, base_size, zombie_kills, gold, attacks, builds, rejected)
     )
-    
 
 
 API = MockApi()
