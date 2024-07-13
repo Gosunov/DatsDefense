@@ -8,39 +8,30 @@ TOKEN = '66912b6a10f7166912b6a10f75'
 
 
 class Api(ABC):
-    @classmethod
     @abstractmethod
-    def participate(cls) -> ParticipateResponse: ...
+    def participate(self) -> ParticipateResponse: ...
 
-    @classmethod
     @abstractmethod
-    def command(cls, cmd: Command) -> CommandResponse: ...
+    def command(self, cmd: Command) -> CommandResponse: ...
 
-    @classmethod
     @abstractmethod
-    def units(cls) -> UnitResponse: ...
+    def units(self) -> UnitResponse: ...
 
-    @classmethod
     @abstractmethod
-    def world(cls) -> WorldResponse: ...
+    def world(self) -> WorldResponse: ...
 
-    @classmethod
     @abstractmethod
-    def rounds(cls) -> RoundsResponse: ...
+    def rounds(self) -> RoundsResponse: ...
 
 
 class ServerApi(Api):
-    @classmethod
-    @property
-    @abstractmethod
-    def BASE_URL(cls) -> str: ...
+    def __init__(self, base_url: str) -> None:
+        self.base_url = base_url
 
-    @classmethod
-    @abstractmethod
-    def request(cls, method, endpoint, body=None) -> dict:
+    def request(self, method, endpoint, body=None) -> dict:
         if body is None:
             body = {}
-        url = cls.BASE_URL + endpoint
+        url = self.base_url + endpoint
         headers = {
             'X-Auth-Token': TOKEN
         }
@@ -50,61 +41,46 @@ class ServerApi(Api):
             raise Exception('Got %d status code from server, server returned\n %s' % (r.status_code, data))
         return r.json()
 
-    @classmethod
-    def participate(cls) -> ParticipateResponse:
-        data = cls.request('put', '/play/zombidef/participate')
+    def participate(self) -> ParticipateResponse:
+        data = self.request('put', '/play/zombidef/participate')
         return ParticipateResponse.deserialize(data)
 
-    @classmethod
-    def command(cls, cmd: Command) -> CommandResponse:
+    def command(self, cmd: Command) -> CommandResponse:
         body = cmd.serialize()
-        data = cls.request('post', '/play/zombidef/command', body)
+        data = self.request('post', '/play/zombidef/command', body)
         return CommandResponse.deserialize(data)
 
-    @classmethod
-    def units(cls) -> UnitResponse:
-        data = cls.request('get', '/play/zombidef/units')
+    def units(self) -> UnitResponse:
+        data = self.request('get', '/play/zombidef/units')
         return UnitResponse.deserialize(data)
 
-    @classmethod
-    def world(cls) -> WorldResponse:
-        data = cls.request('get', '/play/zombidef/world')
+    def world(self) -> WorldResponse:
+        data = self.request('get', '/play/zombidef/world')
         return WorldResponse.deserialize(data)
 
-    @classmethod
-    def rounds(cls) -> RoundsResponse:
-        data = cls.request('get', '/rounds/zombidef')
+    def rounds(self) -> RoundsResponse:
+        data = self.request('get', '/rounds/zombidef')
         return RoundsResponse.deserialize(data)
 
-
-class TestServerApi(ServerApi):
-    @classmethod
-    @property
-    def BASE_URL(cls) -> str: return 'https://games-test.datsteam.dev'
-
-
-class MainServerApi(ServerApi):
-    @classmethod
-    @property
-    def BASE_URL(cls) -> str: return 'https://games.datsteam.dev'
+testServerApi = ServerApi('https://games-test.datsteam.dev')
+mainServerApi = ServerApi('https://games.datsteam.dev')
 
 
 class MockApi(Api):
-    @classmethod
-    def participate(cls) -> ParticipateResponse:
+    def __init__(self) -> None:
+        pass
+
+    def participate(self) -> ParticipateResponse:
         return ParticipateResponse(1)
 
-    @classmethod
-    def command(cls, cmd: Command) -> CommandResponse:
+    def command(self, cmd: Command) -> CommandResponse:
         return CommandResponse([], [])
 
-    @classmethod
-    def units(cls) -> UnitResponse:
+    def units(self) -> UnitResponse:
         resp = json.load(open('sample-responses/unit-response.json'))
         return UnitResponse.deserialize(resp)
 
-    @classmethod
-    def world(cls) -> WorldResponse: 
+    def world(self) -> WorldResponse: 
         resp = {
             "realmName": "map1",
             "zpots": [
@@ -117,8 +93,7 @@ class MockApi(Api):
         }
         return WorldResponse.deserialize(resp)
 
-    @classmethod
-    def rounds(cls) -> RoundsResponse:
+    def rounds(self) -> RoundsResponse:
         resp = {
             "gameName": "defense",
             "now": "2021-01-01T00:00:00Z",

@@ -3,7 +3,7 @@ from time import sleep, time
 import random
 
 from entities import *
-from api import MainServerApi, TestServerApi, MockApi
+from api import mainServerApi, testServerApi, MockApi
 
 def get_attacks(data: UnitResponse, world: WorldResponse) -> list[AttackCommand]:
     attacks = []
@@ -82,7 +82,10 @@ def print_status(data: UnitResponse,
     )
     
 
-API = MockApi
+
+API = MockApi()
+# API = testServerApi 
+# API = mainServerApi
 
 starts_in_sec = API.participate().starts_in_sec
 sleep(starts_in_sec)
