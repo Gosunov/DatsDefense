@@ -29,7 +29,7 @@ API = testServerApi
 try:
     starts_in_sec = API.participate().starts_in_sec
     print('Round is starting in %ds, waiting...' % starts_in_sec)
-    sleep(starts_in_sec + 0.75)
+    sleep(starts_in_sec + 0.5)
 except:
     pass
 

@@ -16,6 +16,7 @@ def neighbours4(coords: Coordinates) -> tuple[Coordinates, Coordinates, Coordina
     w = Coordinates(x - 1, y)
     return (n, e, s, w)
 
+
 def neighbours8(coords: Coordinates) -> tuple[Coordinates, Coordinates, Coordinates, Coordinates, Coordinates, Coordinates, Coordinates, Coordinates]:
     x = coords.x
     y = coords.y
@@ -29,7 +30,6 @@ def neighbours8(coords: Coordinates) -> tuple[Coordinates, Coordinates, Coordina
     ww = Coordinates(x - 1, y + 0)
     nw = Coordinates(x - 1, y + 1)
     return (nn, ne, ee, se, ss, sw, ww, nw)
-
 
 @turncache
 def get_zombies(turn: int, data: UnitResponse, world: WorldResponse) -> dict[Coordinates, list[Zombie]]:
@@ -109,6 +109,8 @@ def get_connected_base(turn: int, data: UnitResponse, world: WorldResponse) -> l
 
     while q:
         coords = q.popleft()
+        if coords not in towers:
+            continue
         component.append(towers[coords])
 
         for neighbor in neighbours4(coords):
