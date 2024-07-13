@@ -62,16 +62,30 @@ def get_builds(data: UnitResponse, world: WorldResponse) -> list[BuildCommand]:
     base = data.base
     gold = data.player.gold
 
+    # Добавляем все близжайшие клетки
     for tower in base:
         spots.add(Coordinates(tower.x, tower.y + 1))
         spots.add(Coordinates(tower.x, tower.y - 1))
         spots.add(Coordinates(tower.x + 1, tower.y))
         spots.add(Coordinates(tower.x - 1, tower.y))
 
+    # Удаляем те клетки, что уже являются нашей базой
     for tower in base:
         coords = Coordinates(tower.x, tower.y)
         if coords in spots:
             spots.remove(coords)
+
+    # Удаляем споты, что близко к спавнерам
+    for spawner in world.zpots:
+        if spawner.type != 'default': continue
+
+        square_avoid_spawner = 4
+        for dx in range(-square_avoid_spawner, square_avoid_spawner+1):
+            for dy in range(-square_avoid_spawner, square_avoid_spawner + 1):
+                coords = Coordinates(spawner.x + dx, spawner.y + dy)
+                if coords in spots:
+                    spots.remove(coords)
+
 
     spots = list(spots)
     random.shuffle(spots)
