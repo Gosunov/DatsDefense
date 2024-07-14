@@ -7,8 +7,6 @@ from time import time
 from utils import turncache
 
 
-import human_controls
-
 def neighbours4(coords: Coordinates) -> tuple[Coordinates, Coordinates, Coordinates, Coordinates]:
     x = coords.x
     y = coords.y
@@ -32,7 +30,6 @@ def neighbours8(coords: Coordinates) -> tuple[Coordinates, Coordinates, Coordina
     ww = Coordinates(x - 1, y + 0)
     nw = Coordinates(x - 1, y + 1)
     return (nn, ne, ee, se, ss, sw, ww, nw)
-
 
 
 @turncache
